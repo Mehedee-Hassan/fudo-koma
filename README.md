@@ -17,3 +17,6 @@ The first pass is intentionally package-free. The map is a custom-painted intera
 - Customers can follow carts and review schedule, opening, and nearby updates.
 - Profile includes customer, cart owner, and admin role previews for the next role-specific flows.
 - `FoodCart` is the local model boundary for later API, GPS, photo, and notification integrations.
+
+
+<img width="504" height="934" alt="Screenshot from 2026-09-09 20-25-56" src="https://github.com/user-attachments/assets/37bb1531-af55-4225-a731-95906a7e2bc5" />
