@@ -1,6 +1,21 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
-void main() {
+import 'firebase_options.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (_) {
+    debugPrint(
+      'Firebase is not configured yet. Replace the values in lib/firebase_options.dart with your real Firebase project settings.',
+    );
+  }
+
   runApp(const FolloCartApp());
 }
 
