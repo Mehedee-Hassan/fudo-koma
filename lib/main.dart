@@ -365,7 +365,21 @@ class _ShellState extends State<Shell> {
       const SizedBox(height: 18),
       SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('Shop is open', style: TextStyle(fontWeight: FontWeight.w700)), subtitle: Text(cart.isOpen ? 'Customers can see you are open now.' : 'Customers see your shop as closed.'), value: cart.isOpen, onChanged: (value) => setState(() => cart.isOpen = value)),
       ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.schedule, color: Color(0xFF176B5B)), title: const Text('Today\'s hours', style: TextStyle(fontWeight: FontWeight.w700)), subtitle: const Text('11:30 AM – 9:30 PM'), trailing: const Icon(Icons.chevron_right)),
-      ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.location_on_outlined, color: Color(0xFF176B5B)), title: Text(ownerStopPublished ? 'Next stop published' : 'Publish next stop', style: const TextStyle(fontWeight: FontWeight.w700)), subtitle: Text(ownerStopPublished ? 'Oak Street · Tomorrow at 12:00 PM' : 'Tell followers where you will be next.'), trailing: IconButton(icon: const Icon(Icons.arrow_forward), onPressed: () => setState(() => ownerStopPublished = true))),
+      ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: const Icon(Icons.location_on_outlined, color: Color(0xFF176B5B)),
+        title: Text(ownerStopPublished ? 'Next stop published' : 'Publish next stop', style: const TextStyle(fontWeight: FontWeight.w700)),
+        subtitle: Text(ownerStopPublished ? 'Oak Street · Tomorrow at 12:00 PM' : 'Tell followers where you will be next.'),
+        trailing: IconButton(
+          icon: const Icon(Icons.arrow_forward),
+          onPressed: () {
+            setState(() => ownerStopPublished = true);
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const OwnerDashboardScreen()),
+            );
+          },
+        ),
+      ),
     ]);
   }
 
@@ -375,7 +389,23 @@ class _ShellState extends State<Shell> {
       const SizedBox(height: 5),
       Text('Moderation queue · 1 item', style: TextStyle(color: Colors.grey.shade600)),
       const SizedBox(height: 18),
-      ListTile(contentPadding: EdgeInsets.zero, leading: const CircleAvatar(backgroundColor: Color(0xFFFFE8DE), child: Icon(Icons.person_outline, color: Color(0xFFE66D45))), title: const Text('Sample account', style: TextStyle(fontWeight: FontWeight.w700)), subtitle: Text(sampleUserBlocked ? 'Blocked from the platform' : 'Reported for review'), trailing: sampleUserBlocked ? const Icon(Icons.check_circle, color: Color(0xFF3C8B70)) : TextButton(onPressed: () => setState(() => sampleUserBlocked = true), child: const Text('Block'))),
+      ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: const CircleAvatar(backgroundColor: Color(0xFFFFE8DE), child: Icon(Icons.person_outline, color: Color(0xFFE66D45))),
+        title: const Text('Sample account', style: TextStyle(fontWeight: FontWeight.w700)),
+        subtitle: Text(sampleUserBlocked ? 'Blocked from the platform' : 'Reported for review'),
+        trailing: sampleUserBlocked
+            ? const Icon(Icons.check_circle, color: Color(0xFF3C8B70))
+            : TextButton(
+                onPressed: () {
+                  setState(() => sampleUserBlocked = true);
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
+                  );
+                },
+                child: const Text('Block'),
+              ),
+      ),
       const SizedBox(height: 8),
       const Text('Admin actions will connect to real user records and reports when a backend is added.', style: TextStyle(fontSize: 12, height: 1.4)),
     ]);
@@ -419,4 +449,174 @@ class MapPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant MapPainter oldDelegate) => false;
+}
+
+class OwnerDashboardScreen extends StatelessWidget {
+  const OwnerDashboardScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Owner dashboard'),
+        backgroundColor: const Color(0xFFF7F8F4),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          const Text('Momo House', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 6),
+          Text('Riverside Park • Street food', style: TextStyle(color: Colors.grey.shade600)),
+          const SizedBox(height: 20),
+          _ownerMetricCard('Current status', 'Open now', const Color(0xFF3C8B70)),
+          const SizedBox(height: 12),
+          _ownerMetricCard('Today\'s hours', '11:30 AM – 9:30 PM', const Color(0xFF176B5B)),
+          const SizedBox(height: 12),
+          _ownerMetricCard('Followers', '248', const Color(0xFFE66D45)),
+          const SizedBox(height: 18),
+          const Text('Manage your cart', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 12),
+          ListTile(
+            tileColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            leading: const Icon(Icons.photo_library_outlined, color: Color(0xFF176B5B)),
+            title: const Text('Upload photos'),
+            subtitle: const Text('Add menu shots and cart branding'),
+          ),
+          const SizedBox(height: 10),
+          ListTile(
+            tileColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            leading: const Icon(Icons.location_on_outlined, color: Color(0xFF176B5B)),
+            title: const Text('Set next stop'),
+            subtitle: const Text('Oak Street • Tomorrow • 12:00 PM'),
+          ),
+          const SizedBox(height: 10),
+          ListTile(
+            tileColor: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            leading: const Icon(Icons.notifications_active_outlined, color: Color(0xFF176B5B)),
+            title: const Text('Push notifications'),
+            subtitle: const Text('Followers receive open, close, and schedule alerts'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _ownerMetricCard(String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: color.withAlpha(18),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: color.withAlpha(80)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(color: color.withAlpha(35), borderRadius: BorderRadius.circular(12)),
+            child: Icon(Icons.storefront_rounded, color: color),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 4),
+                Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class AdminDashboardScreen extends StatelessWidget {
+  const AdminDashboardScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Admin dashboard'),
+        backgroundColor: const Color(0xFFF7F8F4),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          const Text('Moderation center', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 6),
+          Text('Review reports and protect the marketplace', style: TextStyle(color: Colors.grey.shade600)),
+          const SizedBox(height: 20),
+          _adminReportCard('Spam report', 'Chef Nabil', 'Auto-suspend candidate', const Color(0xFFE66D45)),
+          const SizedBox(height: 12),
+          _adminReportCard('Fake listing', 'Green Bites', 'Pending review', const Color(0xFFE1A43A)),
+          const SizedBox(height: 12),
+          _adminReportCard('Location abuse', 'Momo House', 'Flagged by 3 users', const Color(0xFF3C8B70)),
+          const SizedBox(height: 18),
+          const Text('Platform stats', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 12),
+          Row(children: [
+            Expanded(child: _statTile('Active carts', '128', const Color(0xFF176B5B))),
+            const SizedBox(width: 12),
+            Expanded(child: _statTile('Followers', '12.4k', const Color(0xFFE66D45))),
+          ]),
+        ],
+      ),
+    );
+  }
+
+  Widget _adminReportCard(String title, String subject, String note, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE3E7E1)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(color: color.withAlpha(25), borderRadius: BorderRadius.circular(12)),
+            child: Icon(Icons.flag_outlined, color: color),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
+                const SizedBox(height: 4),
+                Text(subject, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+              ],
+            ),
+          ),
+          Text(note, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w800)),
+        ],
+      ),
+    );
+  }
+
+  Widget _statTile(String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(color: color.withAlpha(18), borderRadius: BorderRadius.circular(18), border: Border.all(color: color.withAlpha(80))),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+          const SizedBox(height: 8),
+          Text(value, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w800)),
+        ],
+      ),
+    );
+  }
 }
