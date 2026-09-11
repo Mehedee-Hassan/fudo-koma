@@ -1,7 +1,11 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart' as latlng;
 
 import 'firebase_options.dart';
+import 'config/mapbox_config.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -54,6 +58,8 @@ class FoodCart {
     required this.eta,
     required this.color,
     required this.position,
+    required this.latitude,
+    required this.longitude,
     required this.isOpen,
     required this.followers,
     this.isFollowed = false,
@@ -65,6 +71,8 @@ class FoodCart {
   final String eta;
   final Color color;
   final Offset position;
+  final double latitude;
+  final double longitude;
   bool isOpen;
   final int followers;
   bool isFollowed;
@@ -78,11 +86,17 @@ class Shell extends StatefulWidget {
 }
 
 class _ShellState extends State<Shell> {
+  static const defaultMapCenter = latlng.LatLng(23.8103, 90.4125);
+
   int selectedTab = 0;
   UserRole role = UserRole.customer;
   FoodCart? selectedCart;
   bool ownerStopPublished = false;
   bool sampleUserBlocked = false;
+  bool isLocatingUser = true;
+  String? locationError;
+  latlng.LatLng userLocation = defaultMapCenter;
+  final mapController = MapController();
 
   final carts = <FoodCart>[
     FoodCart(
@@ -92,6 +106,8 @@ class _ShellState extends State<Shell> {
       eta: 'Open until 9:30 PM',
       color: Color(0xFFE66D45),
       position: Offset(0.29, 0.31),
+      latitude: 23.8103,
+      longitude: 90.4125,
       isOpen: true,
       followers: 248,
       isFollowed: true,
@@ -103,6 +119,8 @@ class _ShellState extends State<Shell> {
       eta: 'Opens at 11:30 AM',
       color: Color(0xFF3C8B70),
       position: Offset(0.70, 0.48),
+      latitude: 23.8125,
+      longitude: 90.4160,
       isOpen: false,
       followers: 121,
     ),
@@ -113,10 +131,55 @@ class _ShellState extends State<Shell> {
       eta: 'Open until 7:00 PM',
       color: Color(0xFFE1A43A),
       position: Offset(0.49, 0.73),
+      latitude: 23.8065,
+      longitude: 90.4099,
       isOpen: true,
       followers: 86,
     ),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserLocation();
+  }
+
+  Future<void> _loadUserLocation() async {
+    try {
+      if (!await Geolocator.isLocationServiceEnabled()) {
+        throw Exception('Location services are turned off.');
+      }
+
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        throw Exception('Location permission was not granted.');
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+      );
+      if (!mounted) return;
+
+      setState(() {
+        userLocation = latlng.LatLng(position.latitude, position.longitude);
+        isLocatingUser = false;
+        locationError = null;
+      });
+      mapController.move(userLocation, 13.0);
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        isLocatingUser = false;
+        locationError = error.toString().replaceFirst('Exception: ', '');
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -178,7 +241,10 @@ class _ShellState extends State<Shell> {
             children: [
               Expanded(child: _searchField()),
               const SizedBox(width: 10),
-              _roundIcon(Icons.my_location_rounded, background: const Color(0xFFFFE8DE), foreground: const Color(0xFFE66D45)),
+              GestureDetector(
+                onTap: _loadUserLocation,
+                child: _roundIcon(Icons.my_location_rounded, background: const Color(0xFFFFE8DE), foreground: const Color(0xFFE66D45)),
+              ),
             ],
           ),
         ),
@@ -189,7 +255,7 @@ class _ShellState extends State<Shell> {
             children: [
               const Text('Near you now', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 17)),
               const Spacer(),
-              Text('3 carts', style: TextStyle(color: Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.w600)),
+              Text('${carts.length} carts', style: TextStyle(color: Colors.grey.shade600, fontSize: 13, fontWeight: FontWeight.w600)),
             ],
           ),
         ),
@@ -216,15 +282,102 @@ class _ShellState extends State<Shell> {
   Widget _mapArea() {
     return Stack(
       children: [
-        Positioned.fill(child: CustomPaint(painter: MapPainter(carts: carts))),
+        Positioned.fill(child: _realMapWidget()),
         Positioned(top: 18, left: 18, child: _mapPill(Icons.layers_outlined, 'Map view')),
-        Positioned(top: 18, right: 18, child: _mapPill(Icons.near_me_outlined, '3 km')),
-        ...carts.map((cart) => Positioned(
-              left: MediaQuery.of(context).size.width * cart.position.dx - 23,
-              top: MediaQuery.of(context).size.height * cart.position.dy - 120,
-              child: GestureDetector(onTap: () => setState(() => selectedCart = cart), child: _cartMarker(cart)),
-            )),
+        Positioned(top: 18, right: 18, child: _mapPill(Icons.radar_rounded, '5 km radius')),
+        if (isLocatingUser)
+          Positioned(top: 70, left: 18, child: _mapPill(Icons.my_location_rounded, 'Finding you')),
+        if (locationError != null)
+          Positioned(top: 70, left: 18, right: 18, child: _locationFallbackBanner()),
         if (selectedCart != null) Positioned(left: 14, right: 14, bottom: 14, child: _cartDetail(selectedCart!)),
+      ],
+    );
+  }
+
+  Widget _locationFallbackBanner() {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(14),
+      elevation: 3,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
+          children: [
+            const Icon(Icons.location_off_outlined, color: Color(0xFFE66D45), size: 18),
+            const SizedBox(width: 8),
+            Expanded(child: Text('$locationError Showing the demo area.', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600))),
+            TextButton(onPressed: _loadUserLocation, child: const Text('Retry')),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _realMapWidget() {
+    final initialCenter = latlng.LatLng(23.8103, 90.4125);
+    final tileUrl = MapboxConfig.buildStyleUrl();
+
+    return FlutterMap(
+      mapController: mapController,
+      options: MapOptions(
+        initialCenter: initialCenter,
+        initialZoom: 13.0,
+        interactionOptions: const InteractionOptions(
+          flags: InteractiveFlag.all,
+        ),
+      ),
+      children: [
+        TileLayer(
+          urlTemplate: tileUrl,
+          userAgentPackageName: 'com.example.follo_cart',
+          additionalOptions: MapboxConfig.isConfigured
+              ? {'accessToken': MapboxConfig.mapboxAccessToken}
+              : const {'accessToken': 'placeholder'},
+        ),
+        CircleLayer(
+          circles: [
+            CircleMarker(
+              point: userLocation,
+              radius: 5000,
+              useRadiusInMeter: true,
+              color: const Color(0x26176B5B),
+              borderColor: const Color(0x88176B5B),
+              borderStrokeWidth: 2,
+            ),
+          ],
+        ),
+        MarkerLayer(
+          markers: [
+            Marker(
+              point: userLocation,
+              width: 30,
+              height: 30,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF176B5B),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 4),
+                  boxShadow: const [BoxShadow(color: Color(0x44000000), blurRadius: 8)],
+                ),
+              ),
+            ),
+          ],
+        ),
+        MarkerLayer(
+          markers: carts
+              .map(
+                (cart) => Marker(
+                  point: latlng.LatLng(cart.latitude, cart.longitude),
+                  width: 56,
+                  height: 68,
+                  child: GestureDetector(
+                    onTap: () => setState(() => selectedCart = cart),
+                    child: _cartMarker(cart),
+                  ),
+                ),
+              )
+              .toList(),
+        ),
       ],
     );
   }
@@ -278,7 +431,7 @@ class _ShellState extends State<Shell> {
       _roleWorkspace(),
       const SizedBox(height: 12),
       _settingTile(Icons.notifications_outlined, 'Notifications', 'Schedule, opening status, and nearby alerts'),
-      _settingTile(Icons.location_on_outlined, 'Location alerts', 'Notify me within 3 km of followed carts'),
+      _settingTile(Icons.location_on_outlined, 'Location alerts', 'Notify me within 5 km of followed carts'),
       _settingTile(Icons.help_outline, 'Help & feedback', 'Tell us how to make Follo Cart better'),
     ]);
   }
@@ -304,7 +457,7 @@ class _ShellState extends State<Shell> {
       return _workspaceCard(
         Icons.explore_outlined,
         'Customer view',
-        'Discover nearby carts, follow favorites, and get a 3 km arrival alert.',
+        'Discover nearby carts, follow favorites, and get a 5 km arrival alert.',
         'Open map',
       );
     }

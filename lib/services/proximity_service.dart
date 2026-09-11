@@ -4,9 +4,9 @@ import '../models/food_cart_model.dart';
 import '../models/proximity_alert_model.dart';
 
 class ProximityService {
-  static const double proximityThresholdKm = 3.5;
+  static const double proximityThresholdKm = 5.0;
   static const int checkIntervalMinutes = 10;
-  static const double appLabelDistanceKm = 3.0;
+  static const double appLabelDistanceKm = 5.0;
 
   static double calculateDistanceKm({
     required double lat1,
@@ -47,7 +47,7 @@ class ProximityService {
       if (distance <= proximityThresholdKm) {
         alerts.add(
           ProximityAlertModel(
-            id: '${userId}-${cart.id}-${DateTime.now().millisecondsSinceEpoch}',
+            id: '$userId-${cart.id}-${DateTime.now().millisecondsSinceEpoch}',
             userId: userId,
             cartId: cart.id,
             cartName: cart.name,

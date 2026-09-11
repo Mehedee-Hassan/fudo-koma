@@ -1,9 +1,10 @@
 import 'package:follo_cart/models/food_cart_model.dart';
+import 'package:follo_cart/config/mapbox_config.dart';
 import 'package:follo_cart/services/proximity_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('nearby alert is triggered when a food cart is within 3.5 km', () {
+  test('nearby alert is triggered when a food cart is within 5 km', () {
     final alerts = ProximityService.checkForNearbyCarts(
       userLat: 23.8103,
       userLng: 90.4125,
@@ -32,7 +33,7 @@ void main() {
     expect(alerts.first.distanceKm, lessThanOrEqualTo(ProximityService.proximityThresholdKm));
   });
 
-  test('outside-range alert is not triggered when cart is farther than 3.5 km', () {
+  test('outside-range alert is not triggered when cart is farther than 5 km', () {
     final alerts = ProximityService.checkForNearbyCarts(
       userLat: 23.8103,
       userLng: 90.4125,
@@ -59,10 +60,10 @@ void main() {
     expect(alerts, isEmpty);
   });
 
-  test('notification text says within 3 km', () {
+  test('notification text says within 5 km', () {
     final text = ProximityService.notificationMessage('Momo House', 2.9);
 
-    expect(text, contains('within 3.0 km'));
+    expect(text, contains('within 5.0 km'));
     expect(text, contains('Momo House'));
   });
 
@@ -71,5 +72,12 @@ void main() {
 
     expect(intervalMinutes, 10);
     expect(intervalMinutes > 0, isTrue);
+  });
+
+  test('mapbox style url is ready for a real map widget', () {
+    final url = MapboxConfig.buildStyleUrl();
+
+    expect(url, startsWith('https://api.mapbox.com/'));
+    expect(url, contains('access_token='));
   });
 }
