@@ -9,7 +9,11 @@ flutter pub get
 flutter run -d chrome
 ```
 
+
+
 The app opens with a map-first Explore screen. It requests the user's location, centers the map when permission is granted, and draws a 5 km radius around the user. If location access is unavailable, the app shows the demo area and provides a retry action.
+
+<img width="504" height="934" alt="Screenshot from 2026-09-12 02-08-38" src="https://github.com/user-attachments/assets/a34decef-6273-4e09-bb10-bd0a40b64301" />
 
 ## Map setup
 
