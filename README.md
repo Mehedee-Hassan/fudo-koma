@@ -9,7 +9,9 @@ flutter pub get
 flutter run
 ```
 
-The first pass is intentionally package-free. The map is a custom-painted interaction surface so the map-first experience works without API keys. Replace `MapPainter` with Google Maps, Mapbox, or Apple MapKit when the backend and platform keys are ready.
+The map uses `flutter_map`. It shows OpenStreetMap tiles while `YOUR_MAPBOX_ACCESS_TOKEN` is still configured, and switches to Mapbox streets automatically after a real token is added in `lib/config/mapbox_config.dart`.
+
+The map requests the user's location, centers on it when permission is granted, and draws the 5 km alert radius around that location.
 
 ## Product foundation
 

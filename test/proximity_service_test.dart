@@ -80,4 +80,9 @@ void main() {
     expect(url, startsWith('https://api.mapbox.com/'));
     expect(url, contains('access_token='));
   });
+
+  test('map has a visible development tile fallback without a Mapbox token', () {
+    expect(MapboxConfig.tileUrl, MapboxConfig.openStreetMapTileUrl);
+    expect(MapboxConfig.providerLabel, 'OpenStreetMap preview');
+  });
 }

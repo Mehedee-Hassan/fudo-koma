@@ -136,6 +136,54 @@ class _ShellState extends State<Shell> {
       isOpen: true,
       followers: 86,
     ),
+    FoodCart(
+      name: 'Taco Tuk',
+      category: 'Loaded tacos & street corn',
+      distance: '3.1 km away',
+      eta: 'Open until 10:00 PM',
+      color: Color(0xFFB95D3B),
+      position: Offset(0.18, 0.58),
+      latitude: 23.8180,
+      longitude: 90.4078,
+      isOpen: true,
+      followers: 74,
+    ),
+    FoodCart(
+      name: 'Dosa Dash',
+      category: 'Crispy dosas & chutney',
+      distance: '3.7 km away',
+      eta: 'Opens at 5:00 PM',
+      color: Color(0xFF8D6E3E),
+      position: Offset(0.82, 0.28),
+      latitude: 23.8008,
+      longitude: 90.4192,
+      isOpen: false,
+      followers: 59,
+    ),
+    FoodCart(
+      name: 'Noodle Van',
+      category: 'Wok noodles & dumplings',
+      distance: '4.2 km away',
+      eta: 'Open until 8:30 PM',
+      color: Color(0xFF5D7891),
+      position: Offset(0.61, 0.18),
+      latitude: 23.8195,
+      longitude: 90.4180,
+      isOpen: true,
+      followers: 103,
+    ),
+    FoodCart(
+      name: 'Sweet Wheels',
+      category: 'Waffles, crepes & shakes',
+      distance: '4.8 km away',
+      eta: 'Open until 11:00 PM',
+      color: Color(0xFFC65B7A),
+      position: Offset(0.36, 0.84),
+      latitude: 23.7978,
+      longitude: 90.4055,
+      isOpen: true,
+      followers: 132,
+    ),
   ];
 
   @override
@@ -315,7 +363,6 @@ class _ShellState extends State<Shell> {
 
   Widget _realMapWidget() {
     final initialCenter = latlng.LatLng(23.8103, 90.4125);
-    final tileUrl = MapboxConfig.buildStyleUrl();
 
     return FlutterMap(
       mapController: mapController,
@@ -328,11 +375,8 @@ class _ShellState extends State<Shell> {
       ),
       children: [
         TileLayer(
-          urlTemplate: tileUrl,
+          urlTemplate: MapboxConfig.tileUrl,
           userAgentPackageName: 'com.example.follo_cart',
-          additionalOptions: MapboxConfig.isConfigured
-              ? {'accessToken': MapboxConfig.mapboxAccessToken}
-              : const {'accessToken': 'placeholder'},
         ),
         CircleLayer(
           circles: [
@@ -377,6 +421,11 @@ class _ShellState extends State<Shell> {
                 ),
               )
               .toList(),
+        ),
+        RichAttributionWidget(
+          attributions: [
+            TextSourceAttribution(MapboxConfig.providerLabel),
+          ],
         ),
       ],
     );
