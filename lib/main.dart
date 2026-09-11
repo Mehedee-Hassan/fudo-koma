@@ -401,7 +401,6 @@ class _ShellState extends State<Shell> {
                   color: const Color(0xFF176B5B),
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.white, width: 4),
-                  boxShadow: const [BoxShadow(color: Color(0x44000000), blurRadius: 8)],
                 ),
               ),
             ),
@@ -436,7 +435,7 @@ class _ShellState extends State<Shell> {
   }
 
   Widget _cartMarker(FoodCart cart) {
-    return Column(children: [Container(width: 46, height: 46, decoration: BoxDecoration(color: cart.color, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 3), boxShadow: const [BoxShadow(color: Color(0x44000000), blurRadius: 8)]), child: const Icon(Icons.storefront_rounded, color: Colors.white, size: 23)), Container(width: 2, height: 7, color: cart.color)]);
+    return Column(children: [Container(width: 46, height: 46, decoration: BoxDecoration(color: cart.color, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 3)), child: const Icon(Icons.storefront_rounded, color: Colors.white, size: 23)), Container(width: 2, height: 7, color: cart.color)]);
   }
 
   Widget _cartDetail(FoodCart cart) {
