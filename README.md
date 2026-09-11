@@ -6,29 +6,58 @@ A Flutter prototype for discovering and following mobile food carts.
 
 ```bash
 flutter pub get
-flutter run
+flutter run -d chrome
 ```
 
-The map uses `flutter_map`. It shows OpenStreetMap tiles while `YOUR_MAPBOX_ACCESS_TOKEN` is still configured, and switches to Mapbox streets automatically after a real token is added in `lib/config/mapbox_config.dart`.
+The app opens with a map-first Explore screen. It requests the user's location, centers the map when permission is granted, and draws a 5 km radius around the user. If location access is unavailable, the app shows the demo area and provides a retry action.
 
-The map requests the user's location, centers on it when permission is granted, and draws the 5 km alert radius around that location.
+## Map setup
 
-## Product foundation
+The map uses [`flutter_map`](https://pub.dev/packages/flutter_map).
 
-- Explore opens on a local map with live/open status and 3 km context.
-- Normal users can browse without login and follow carts for updates.
-- Customers can follow carts and review schedule, opening, and nearby updates.
-- Food cart owners can publish location updates and store open/closed status.
-- Admins can review reported users and block abusive accounts.
-- `FoodCart` is the local model boundary for later API, GPS, photo, and notification integrations.
+- Without a Mapbox token, the app uses OpenStreetMap tiles for development preview.
+- To use Mapbox streets, replace `YOUR_MAPBOX_ACCESS_TOKEN` in `lib/config/mapbox_config.dart` with a valid public token.
+- The map includes attribution for the active tile provider.
+- The 5 km map radius and proximity service use the user's latitude and longitude.
 
+For production, use an approved tile provider and follow its usage and attribution requirements. The public OpenStreetMap tile server should not be treated as a production tile service.
 
+## Current features
 
-<img width="504" height="934" alt="Screenshot from 2026-09-09 20-25-56" src="https://github.com/user-attachments/assets/37bb1531-af55-4225-a731-95906a7e2bc5" />
-=======
-## Firebase-ready architecture
+- Guest-friendly map exploration without login.
+- Seven coordinate-based demo food carts.
+- Cart markers with selection details and open/closed status.
+- Follow and unfollow carts.
+- Following and Updates tabs.
+- Customer, Cart Owner, and Admin role previews.
+- 5 km proximity threshold with a 10-minute check interval in `lib/services/proximity_service.dart`.
+- Firebase-ready models and service seams.
 
-- `lib/models/` contains the core data models for users, carts, follows, and notifications.
-- `lib/services/firestore_service.dart` provides the replacement seam for Firestore-backed business logic.
-- `lib/firebase_options.dart` is the config file intended to be replaced by `flutterfire configure` output.
-- `SETUP_FIREBASE.md` explains how to enable Firebase for this app.
+## Validation
+
+```bash
+flutter analyze
+flutter test
+```
+
+Both commands currently pass.
+
+## Project structure
+
+- `lib/main.dart` contains the current app shell, map, markers, and prototype workflows.
+- `lib/config/mapbox_config.dart` contains map provider configuration and fallback behavior.
+- `lib/models/` contains cart, user, follow, notification, and proximity alert models.
+- `lib/services/proximity_service.dart` calculates distance and creates nearby-cart alerts.
+- `lib/services/firestore_service.dart` is the Firebase/Firestore integration seam.
+- `SETUP_FIREBASE.md` documents Firebase setup.
+- `txt.md` contains the detailed current status and remaining limitations.
+
+## Production work remaining
+
+- Add a real Mapbox token and production tile configuration.
+- Connect Firestore, Firebase Authentication, Firebase Storage, and FCM.
+- Persist users, carts, follows, schedules, and updates.
+- Add live cart-owner location publishing.
+- Implement background location checks and OS-level push notifications.
+- Replace role previews with protected workflows.
+- Complete Android and iOS permission configuration and device testing.
