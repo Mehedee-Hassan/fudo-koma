@@ -20,7 +20,7 @@ The first pass is intentionally package-free. The map is a custom-painted intera
 - Admins can review reported users and block abusive accounts.
 - `FoodCart` is the local model boundary for later API, GPS, photo, and notification integrations.
 
-<<<<<<< HEAD
+
 
 <img width="504" height="934" alt="Screenshot from 2026-09-09 20-25-56" src="https://github.com/user-attachments/assets/37bb1531-af55-4225-a731-95906a7e2bc5" />
 =======
@@ -30,4 +30,3 @@ The first pass is intentionally package-free. The map is a custom-painted intera
 - `lib/services/firestore_service.dart` provides the replacement seam for Firestore-backed business logic.
 - `lib/firebase_options.dart` is the config file intended to be replaced by `flutterfire configure` output.
 - `SETUP_FIREBASE.md` explains how to enable Firebase for this app.
->>>>>>> 4b73832 (data mock)
