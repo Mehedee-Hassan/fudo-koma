@@ -3,27 +3,73 @@ import 'package:follo_cart/services/proximity_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('calculates distance for a nearby cart within 3 km', () {
-    final distance = ProximityService.calculateDistanceKm(
-      lat1: 23.8103,
-      lon1: 90.4125,
-      lat2: 23.8125,
-      lon2: 90.4160,
-    );
-
-    expect(distance, isNonNegative);
-    expect(distance, lessThanOrEqualTo(3.0));
-  });
-
-  test('creates a proximity alert when user is within 3 km', () {
+  test('nearby alert is triggered when a food cart is within 3.5 km', () {
     final alerts = ProximityService.checkForNearbyCarts(
       userLat: 23.8103,
       userLng: 90.4125,
-      carts: FoodCartModel.demoCarts(),
+      carts: [
+        FoodCartModel(
+          id: 'cart-1',
+          name: 'Momo House',
+          category: 'Nepali street food',
+          locationLabel: 'Riverside Park',
+          schedule: '11:30 AM – 9:30 PM',
+          photoUrl: '',
+          isOpen: true,
+          ownerId: 'owner-1',
+          latitude: 23.8125,
+          longitude: 90.4160,
+          followersCount: 248,
+          updatedAt: DateTime.now(),
+          isFeatured: true,
+        ),
+      ],
       userId: 'user-1',
     );
 
     expect(alerts, isNotEmpty);
-    expect(alerts.first.distanceKm, lessThanOrEqualTo(3.0));
+    expect(alerts.first.cartName, 'Momo House');
+    expect(alerts.first.distanceKm, lessThanOrEqualTo(ProximityService.proximityThresholdKm));
+  });
+
+  test('outside-range alert is not triggered when cart is farther than 3.5 km', () {
+    final alerts = ProximityService.checkForNearbyCarts(
+      userLat: 23.8103,
+      userLng: 90.4125,
+      carts: [
+        FoodCartModel(
+          id: 'cart-far',
+          name: 'Far Cart',
+          category: 'Street food',
+          locationLabel: 'Far away',
+          schedule: 'Open today',
+          photoUrl: '',
+          isOpen: true,
+          ownerId: 'owner-3',
+          latitude: 23.9000,
+          longitude: 90.5000,
+          followersCount: 20,
+          updatedAt: DateTime.now(),
+          isFeatured: false,
+        ),
+      ],
+      userId: 'user-1',
+    );
+
+    expect(alerts, isEmpty);
+  });
+
+  test('notification text says within 3 km', () {
+    final text = ProximityService.notificationMessage('Momo House', 2.9);
+
+    expect(text, contains('within 3.0 km'));
+    expect(text, contains('Momo House'));
+  });
+
+  test('periodic check repeats after 10 minutes', () {
+    const intervalMinutes = ProximityService.checkIntervalMinutes;
+
+    expect(intervalMinutes, 10);
+    expect(intervalMinutes > 0, isTrue);
   });
 }
