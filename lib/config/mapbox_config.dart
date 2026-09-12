@@ -1,22 +1,38 @@
+import '../core/app_config.dart';
+
+/// Tile source configuration.
+///
+/// Now an instance class: the old static version made the access token a source
+/// literal and pinned a test to the unconfigured branch, so the suite would
+/// break the moment a real token was added.
 class MapboxConfig {
-  static const mapboxAccessToken = 'YOUR_MAPBOX_ACCESS_TOKEN';
-  static const openStreetMapTileUrl =
+  const MapboxConfig({this.accessToken = ''});
+
+  /// Token from `--dart-define=MAPBOX_TOKEN=...`, so it stays out of source.
+  factory MapboxConfig.fromEnvironment() =>
+      const MapboxConfig(accessToken: AppConfig.mapboxToken);
+
+  final String accessToken;
+
+  static const String openStreetMapTileUrl =
       'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 
-  static bool get isConfigured =>
-      mapboxAccessToken.trim().isNotEmpty &&
-      mapboxAccessToken.trim() != 'YOUR_MAPBOX_ACCESS_TOKEN';
+  bool get isConfigured =>
+      accessToken.isNotEmpty && !accessToken.startsWith('YOUR_');
 
-  static String buildStyleUrl() {
-    return 'https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/256/{z}/{x}/{y}?access_token=$mapboxAccessToken';
-  }
+  /// 512 px @2x tiles on streets-v12; the previous streets-v11 at 256 px is
+  /// deprecated and looked soft on retina screens.
+  String buildStyleUrl() =>
+      'https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/512/{z}/{x}/{y}@2x'
+      '?access_token=$accessToken';
 
-  static String get tileUrl =>
-      isConfigured ? buildStyleUrl() : openStreetMapTileUrl;
+  String get tileUrl => isConfigured ? buildStyleUrl() : openStreetMapTileUrl;
 
-  static String get providerLabel =>
-      isConfigured ? 'Mapbox streets' : 'OpenStreetMap preview';
+  /// Mapbox's 512 px tiles need these on the TileLayer to line up with the
+  /// standard 256 px web-mercator grid.
+  int get tileSize => isConfigured ? 512 : 256;
+  double get zoomOffset => isConfigured ? -1 : 0;
 
-  static const mapboxStyleUrl =
-      'https://api.mapbox.com/styles/v1/mapbox/streets-v11/tiles/256/{z}/{x}/{y}?access_token=YOUR_MAPBOX_ACCESS_TOKEN';
+  String get providerLabel =>
+      isConfigured ? 'Mapbox streets' : 'OpenStreetMap contributors';
 }

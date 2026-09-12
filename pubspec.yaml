@@ -1,7 +1,7 @@
 name: follo_cart
 description: A map-first food cart discovery and follow app.
 publish_to: "none"
-version: 0.1.0+1
+version: 0.2.0+2
 
 environment:
   sdk: ">=3.6.0 <4.0.0"
@@ -18,6 +18,13 @@ dependencies:
   flutter_map: ^8.3.2
   latlong2: ^0.10.1
   geolocator: ^14.0.3
+  provider: ^6.1.2
+  shared_preferences: ^2.3.3
+  path_provider: ^2.1.5
+  image_picker: ^1.1.2
+  flutter_local_notifications: ^19.0.0
+  crypto: ^3.0.6
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:

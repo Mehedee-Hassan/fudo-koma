@@ -1,4 +1,23 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Network: required for map tiles, Firestore, Storage and FCM.
+         Previously declared only in the debug/profile manifests, which left
+         release builds with no network at all. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- Location: powers the Explore map, live distances and proximity alerts. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+
+    <!-- Notifications (Android 13+ requires a runtime grant). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+
+    <!-- Opt-in only: owner live-location sharing and background proximity alerts
+         run as a foreground service. Both are OFF by default in the app. -->
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
+
     <application
         android:label="follo_cart"
         android:name="${applicationName}"

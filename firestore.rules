@@ -1,0 +1,107 @@
+rules_version = '2';
+
+// Follo Cart security rules.
+//
+// The app's client-side checks (blocked users, admin-only screens) are a UX
+// convenience. THESE RULES are the actual enforcement - a blocked user with a
+// patched client is stopped here and nowhere else.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function profile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function notBlocked() {
+      return signedIn() && profile().isBlocked != true;
+    }
+
+    function isAdmin() {
+      return signedIn() && profile().role == 'admin';
+    }
+
+    // Privilege fields must never be client-writable: otherwise anyone could
+    // promote themselves to admin or clear their own block.
+    function keepsPrivilegeFields() {
+      return request.resource.data.role == resource.data.role
+          && request.resource.data.isBlocked == resource.data.isBlocked;
+    }
+
+    match /users/{userId} {
+      allow read: if signedIn();
+
+      // A new account may only be created for yourself, as a non-admin, and
+      // never pre-blocked.
+      allow create: if signedIn()
+                    && request.auth.uid == userId
+                    && request.resource.data.role in ['customer', 'owner']
+                    && request.resource.data.isBlocked == false;
+
+      allow update: if isAdmin()
+                    || (request.auth.uid == userId
+                        && notBlocked()
+                        && keepsPrivilegeFields());
+
+      allow delete: if isAdmin();
+    }
+
+    match /users/{userId}/notifications/{notificationId} {
+      // A per-user subcollection keeps this rule to one line and needs no
+      // composite index.
+      allow read, update, delete: if signedIn() && request.auth.uid == userId;
+      allow create: if notBlocked();
+    }
+
+    match /carts/{cartId} {
+      allow read: if true; // Guests browse the map without an account.
+
+      allow create: if notBlocked()
+                    && request.resource.data.ownerId == request.auth.uid
+                    && request.resource.data.isActive == true;
+
+      // Owners edit their own cart; admins can hide any cart.
+      allow update: if isAdmin()
+                    || (notBlocked() && resource.data.ownerId == request.auth.uid)
+                    // Any signed-in user may only nudge the follower counter.
+                    || (notBlocked()
+                        && request.resource.data.diff(resource.data)
+                             .affectedKeys()
+                             .hasOnly(['followersCount', 'updatedAt']));
+
+      allow delete: if isAdmin()
+                    || (notBlocked() && resource.data.ownerId == request.auth.uid);
+
+      match /updates/{updateId} {
+        allow read: if true;
+        allow write: if isAdmin()
+                     || (notBlocked()
+                         && get(/databases/$(database)/documents/carts/$(cartId))
+                              .data.ownerId == request.auth.uid);
+      }
+    }
+
+    match /follows/{followId} {
+      // Deterministic id "{userId}_{cartId}" means ownership is checkable
+      // without a read.
+      allow read: if signedIn() && resource.data.userId == request.auth.uid;
+      allow create: if notBlocked()
+                    && request.resource.data.userId == request.auth.uid
+                    && followId == request.auth.uid + '_' + request.resource.data.cartId;
+      allow update, delete: if notBlocked()
+                            && resource.data.userId == request.auth.uid;
+    }
+
+    match /reports/{reportId} {
+      // Reporters cannot read the queue; only admins can.
+      allow read: if isAdmin();
+      allow create: if notBlocked()
+                    && request.resource.data.reporterId == request.auth.uid
+                    && request.resource.data.status == 'open';
+      allow update, delete: if isAdmin();
+    }
+  }
+}

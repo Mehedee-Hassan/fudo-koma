@@ -45,5 +45,20 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Follo Cart uses your location to show food carts near you and alert you when a cart you follow is within 5 km.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Allow Always so Follo Cart can alert you when a followed cart comes within 5 km, even when the app is in the background.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Follo Cart alerts you when a followed cart comes within 5 km.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Take photos of your cart so customers can see what you serve.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Choose photos of your cart from your photo library.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+		<string>location</string>
+	</array>
 </dict>
 </plist>
